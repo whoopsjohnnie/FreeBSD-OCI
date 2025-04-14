@@ -1,0 +1,346 @@
+
+john@twix ~>sudo pkg install podman-suite
+Updating FreeBSD repository catalogue...
+FreeBSD repository is up to date.
+All repositories are up to date.
+The following 8 package(s) will be affected (of 0 checked):
+
+New packages to be INSTALLED:
+	buildah: 1.37.5_1
+	conmon: 2.1.12_4
+	containernetworking-plugins: 0.5_10
+	containers-common: 0.60.4_1
+	ocijail: 0.4.0_1
+	podman: 5.2.5_2
+	podman-suite: 20241023
+	skopeo: 1.16.1_2
+
+Number of packages to be installed: 8
+
+The process will require 197 MiB more space.
+86 MiB to be downloaded.
+
+Proceed with this action? [y/N]: y
+[1/8] Fetching buildah-1.37.5_1.pkg: 100%   20 MiB  10.6MB/s    00:02    
+[2/8] Fetching ocijail-0.4.0_1.pkg: 100%  249 KiB 254.7kB/s    00:01    
+[3/8] Fetching skopeo-1.16.1_2.pkg: 100%   16 MiB  16.5MB/s    00:01    
+[4/8] Fetching containers-common-0.60.4_1.pkg: 100%   73 KiB  74.6kB/s    00:01    
+[5/8] Fetching podman-suite-20241023.pkg: 100%    1 KiB   1.2kB/s    00:01    
+[6/8] Fetching conmon-2.1.12_4.pkg: 100%   36 KiB  36.4kB/s    00:01    
+[7/8] Fetching podman-5.2.5_2.pkg: 100%   48 MiB  12.5MB/s    00:04    
+[8/8] Fetching containernetworking-plugins-0.5_10.pkg: 100%    2 MiB   2.1MB/s    00:01    
+Checking integrity... done (0 conflicting)
+[1/8] Installing ocijail-0.4.0_1...
+[1/8] Extracting ocijail-0.4.0_1: 100%
+[2/8] Installing containers-common-0.60.4_1...
+[2/8] Extracting containers-common-0.60.4_1: 100%
+[3/8] Installing conmon-2.1.12_4...
+[3/8] Extracting conmon-2.1.12_4: 100%
+[4/8] Installing containernetworking-plugins-0.5_10...
+[4/8] Extracting containernetworking-plugins-0.5_10: 100%
+[5/8] Installing buildah-1.37.5_1...
+[5/8] Extracting buildah-1.37.5_1: 100%
+[6/8] Installing skopeo-1.16.1_2...
+[6/8] Extracting skopeo-1.16.1_2: 100%
+[7/8] Installing podman-5.2.5_2...
+[7/8] Extracting podman-5.2.5_2: 100%
+[8/8] Installing podman-suite-20241023...
+[8/8] Extracting podman-suite-20241023: 100%
+=====
+Message from containers-common-0.60.4_1:
+
+--
+Container images and related state is stored in /var/db/containers. It
+is recommended to use ZFS for this:
+
+# zfs create -o mountpoint=/var/db/containers zroot/containers
+
+If your system cannot use ZFS, change storage.conf to use the vfs
+storage driver:
+
+# sed -I .bak -e 's/driver = "zfs"/driver = "vfs"/' /usr/local/etc/containers/storage.conf
+=====
+Message from conmon-2.1.12_4:
+
+--
+To properly support Podman's container restart policy, conmon needs fdescfs(5)
+to be mounted on /dev/fd.
+
+If /dev/fd is not already mounted:
+
+	mount -t fdescfs fdesc /dev/fd
+
+To make it permanent, add the following line to /etc/fstab:
+
+	fdesc	/dev/fd		fdescfs		rw	0	0
+=====
+Message from containernetworking-plugins-0.5_10:
+
+--
+Container networking relies on NAT to allow container network packets
+out to the host's network. This requires a PF firewall to perform the
+translation. A simple example is included - to use it:
+
+# cp /usr/local/etc/containers/pf.conf.sample /etc/pf.conf
+...
+Edit /etc/pf.conf and set v4egress_if, v6egress_if to your network interface(s)
+...
+# sysrc pf_enable=YES
+# service pf start
+
+The sample PF configuration includes support for port redirections. These are
+implemented as redirect rules in anchors nested under cni-rdr.
+
+Support for redirecting connections from the container host to services running
+inside a container is included for FreeBSD 13.3 and later. To enable this, first
+load the pf kernel module, by adding pf_load="YES" to /boot/loader.conf and
+enable PF support for these redirections using sysctl:
+
+# kldload pf
+# sysctl net.pf.filter_local=1
+# service pf restart
+
+Redirect rules will work if the destination address is localhost (e.g. 127.0.0.1
+or ::1) - to enable this, the following line must be included in your
+/etc/pf.conf:
+
+nat-anchor "cni-rdr/*"
+
+if upgrading from an older version, this needs to be added to /etc/pf.conf.
+
+For example if host port 1234 is redirected to an http service running in a
+container, you could connect to it using:
+
+# fetch -o- http://$(hostname):1234
+
+or
+
+# fetch -o- http://localhost:1234
+=====
+Message from buildah-1.37.5_1:
+
+--
+The FreeBSD port of the Buildah image building tool is experimental and should
+be used for evaluation and testing purposes only.
+
+Basic usage follows:
+
+$ export c=$(sudo buildah from quay.io/dougrabson/freebsd14-minimal)
+$ sudo buildah run $c freebsd-version -ru
+$ sudo buildah run $c ping -c 3 9.9.9.9
+=====
+Message from podman-5.2.5_2:
+
+--
+The FreeBSD port of the Podman container engine is experimental and should be
+used for evaluation and testing purposes only.
+
+$ sudo podman run --rm docker.io/dougrabson/hello
+
+Podman can restart containers after a host is rebooted. To enable this, use:
+
+$ sudo sysrc podman_enable=YES
+
+and start the container with a restart policy:
+
+$ sudo podman run -d --restart=always myimage
+
+It is possible to run many Linux container images using FreeBSD's Linux emulation:
+
+$ sudo sysrc linux_enable=YES
+$ sudo service linux start
+$ sudo podman run --rm --os=linux alpine cat /etc/os-release | head -1
+NAME="Alpine Linux"
+=====
+Message from podman-suite-20241023:
+
+--
+Optionally, to host your own image registry, or to
+create cross-platform images, install in addition:
+
+- sysutils/docker-registry
+- emulators/qemu-user-static
+john@twix ~>
+
+john@twix ~>sudo mount -t fdescfs fdesc /dev/fd
+john@twix ~>
+
+# Podman
+fdesc   /dev/fd         fdescfs         rw      0       0
+
+john@twix ~>sudo service podman enable
+Error: configure storage: no zfs dataset found for rootdir '/var/db/containers/storage': prerequisites for driver not satisfied (wrong filesystem?)
+podman enabled in /etc/rc.conf
+john@twix ~>
+
+john@twix ~>ls /etc/pf.conf
+ls: /etc/pf.conf: No such file or directory
+john@twix ~>sudo cp /usr/local/etc/containers/pf.conf.sample /etc/pf.conf
+john@twix ~>ifconfig
+vtnet0: flags=1008843<UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST,LOWER_UP> metric 0 mtu 1500
+	options=4c07bb<RXCSUM,TXCSUM,VLAN_MTU,VLAN_HWTAGGING,JUMBO_MTU,VLAN_HWCSUM,TSO4,TSO6,LRO,VLAN_HWTSO,LINKSTATE,TXCSUM_IPV6>
+	ether 0a:ed:dd:59:e5:a5
+	inet 10.88.88.173 netmask 0xffffff00 broadcast 10.88.88.255
+	media: Ethernet autoselect (10Gbase-T <full-duplex>)
+	status: active
+	nd6 options=29<PERFORMNUD,IFDISABLED,AUTO_LINKLOCAL>
+lo0: flags=1008049<UP,LOOPBACK,RUNNING,MULTICAST,LOWER_UP> metric 0 mtu 16384
+	options=680003<RXCSUM,TXCSUM,LINKSTATE,RXCSUM_IPV6,TXCSUM_IPV6>
+	inet 127.0.0.1 netmask 0xff000000
+	inet6 ::1 prefixlen 128
+	inet6 fe80::1%lo0 prefixlen 64 scopeid 0x2
+	groups: lo
+	nd6 options=21<PERFORMNUD,AUTO_LINKLOCAL>
+john@twix ~>sudo vim /etc/pf.conf
+john@twix ~>cat /etc/pf.conf
+# Change these to the interface(s) with the default route
+v4egress_if = "vtnet0"
+v6egress_if = "vtnet0"
+
+nat on $v4egress_if inet from <cni-nat> to any -> ($v4egress_if)
+nat on $v6egress_if inet6 from <cni-nat> to !ff00::/8 -> ($v6egress_if)
+
+rdr-anchor "cni-rdr/*"
+nat-anchor "cni-rdr/*"
+table <cni-nat>
+
+john@twix ~>sudo service pf enable
+pf enabled in /etc/rc.conf
+john@twix ~>sudo service pf start
+Enabling pf.
+john@twix ~>
+
+john@twix ~>sudo vim /boot/loader.conf
+john@twix ~>cat /boot/loader.conf
+utouch_load="YES"
+pf_load="YES"
+john@twix ~>sudo kldload pf
+kldload: can't load pf: module already loaded or in kernel
+john@twix ~>sudo sysctl net.pf.filter_local=1
+net.pf.filter_local: 0 -> 1
+john@twix ~>sudo vim /etc/sysctl.conf.local
+john@twix ~>sudo cat /etc/sysctl.conf.local
+net.pf.filter_local=1
+john@twix ~>sudo service pf restart
+Disabling pf.
+Enabling pf.
+
+john@twix ~>sudo vim /usr/local/etc/containers/storage.conf    
+john@twix ~>cat /usr/local/etc/containers/storage.conf 
+...
+# Default Storage Driver, Must be set for proper operation.
+driver = "vfs"
+...
+
+
+
+john@twix ~>sudo podman run --rm docker.io/dougrabson/hello
+ERRO[0000] User-selected graph driver "vfs" overwritten by graph driver "zfs" from database - delete libpod local files ("/var/db/containers/storage") to resolve.  May prevent use of images created by other tools 
+Error: configure storage: no zfs dataset found for rootdir '/var/db/containers/storage': prerequisites for driver not satisfied (wrong filesystem?)
+john@twix ~>sudo rm -rf /var/db/containers/storage
+john@twix ~>sudo podman run --rm docker.io/dougrabson/hello
+Trying to pull docker.io/dougrabson/hello:latest...
+Getting image source signatures
+Copying blob b13a5ec7f3d2 done   | 
+Copying config f81c971736 done   | 
+Writing manifest to image destination
+!... Hello Podman World ...!
+
+         .--"--.           
+       / -     - \         
+      / (O)   (O) \        
+   ~~~| -=(,Y,)=- |         
+    .---. /`  \   |~~      
+ ~/  o  o \~~~~.----. ~~   
+  | =(X)= |~  / (O (O) \   
+   ~~~~~~~  ~| =(Y_)=-  |   
+  ~~~~    ~~~|   U      |~~ 
+
+Project:   https://github.com/containers/podman
+Website:   https://podman.io
+Documents: https://docs.podman.io
+Twitter:   @Podman_io
+john@twix ~>
+
+john@twix ~>sudo podman images
+REPOSITORY                  TAG         IMAGE ID      CREATED      SIZE
+docker.io/dougrabson/hello  latest      f81c971736c6  2 years ago  4.06 MB
+
+
+john@twix ~>sudo sysrc linux_enable=YES
+linux_enable: NO -> YES
+john@twix ~>sudo service linux start
+john@twix ~>sudo podman run --rm --os=linux alpine cat /etc/os-release | head -1
+Error: short-name "alpine" did not resolve to an alias and no unqualified-search registries are defined in "/usr/local/etc/containers/registries.conf"
+john@twix ~>sudo podman run --rm --os=linux docker.io/alpine cat /etc/os-release | head -1
+Trying to pull docker.io/library/alpine:latest...
+Getting image source signatures
+Copying blob 1f3e46996e29 done   | 
+Copying config b0c9d60fc5 done   | 
+Writing manifest to image destination
+NAME="Alpine Linux"
+john@twix ~>
+
+john@twix ~>sudo podman run -it --rm --os=linux docker.io/alpine /bin/sh 
+/ # uname -a
+Linux dde9149a0edd 5.15.0 FreeBSD 14.2-RELEASE releng/14.2-n269506-c8918d6c7412 GENERIC x86_64 Linux
+/ # cat /etc/os-release 
+NAME="Alpine Linux"
+ID=alpine
+VERSION_ID=3.21.2
+PRETTY_NAME="Alpine Linux v3.21"
+HOME_URL="https://alpinelinux.org/"
+BUG_REPORT_URL="https://gitlab.alpinelinux.org/alpine/aports/-/issues"
+/ # 
+
+
+
+john@twix ~>export OCIBASE=https://download.freebsd.org/releases/OCI-IMAGES/14.2-RELEASE/amd64/Latest
+john@twix ~>sudo podman load -i=$OCIBASE/FreeBSD-14.2-RELEASE-amd64-container-image-static.txz
+Getting image source signatures
+Copying blob 3d72902df126 done   | 
+Copying config 7876fe59db done   | 
+Writing manifest to image destination
+Loaded image: localhost/freebsd14-static:14.2-RELEASE-amd64
+john@twix ~>sudo podman load -i=$OCIBASE/FreeBSD-14.2-RELEASE-amd64-container-image-dynamic.txz
+Getting image source signatures
+Copying blob 3d72902df126 skipped: already exists  
+Copying blob 9154eccec9cd done   | 
+Copying config ebf7538b22 done   | 
+Writing manifest to image destination
+Loaded image: localhost/freebsd14-dynamic:14.2-RELEASE-amd64
+john@twix ~>sudo podman load -i=$OCIBASE/FreeBSD-14.2-RELEASE-amd64-container-image-minimal.txz
+Getting image source signatures
+Copying blob 3d72902df126 skipped: already exists  
+Copying blob 9154eccec9cd skipped: already exists  
+Copying blob 6c3cf2b1cc8a done   | 
+Copying config c5f3e77557 done   | 
+Writing manifest to image destination
+Loaded image: localhost/freebsd14-minimal:14.2-RELEASE-amd64
+john@twix ~>sudo podman images
+REPOSITORY                   TAG                 IMAGE ID      CREATED      SIZE
+docker.io/library/alpine     latest              b0c9d60fc5e3  2 weeks ago  8.13 MB
+localhost/freebsd14-minimal  14.2-RELEASE-amd64  c5f3e77557a9  8 weeks ago  35.1 MB
+localhost/freebsd14-dynamic  14.2-RELEASE-amd64  ebf7538b22f4  8 weeks ago  15.9 MB
+localhost/freebsd14-static   14.2-RELEASE-amd64  7876fe59dbb3  8 weeks ago  5.45 MB
+docker.io/dougrabson/hello   latest              f81c971736c6  2 years ago  4.06 MB
+john@twix ~>sudo buildah images
+REPOSITORY                    TAG                  IMAGE ID       CREATED       SIZE
+docker.io/library/alpine      latest               b0c9d60fc5e3   2 weeks ago   8.13 MB
+localhost/freebsd14-minimal   14.2-RELEASE-amd64   c5f3e77557a9   8 weeks ago   35.1 MB
+localhost/freebsd14-dynamic   14.2-RELEASE-amd64   ebf7538b22f4   8 weeks ago   15.9 MB
+localhost/freebsd14-static    14.2-RELEASE-amd64   7876fe59dbb3   8 weeks ago   5.45 MB
+docker.io/dougrabson/hello    latest               f81c971736c6   2 years ago   4.06 MB
+john@twix ~>sudo podman run -it localhost/freebsd14-minimal:14.2-RELEASE-amd64 /bin/sh
+# uname -a
+FreeBSD 4305ae09f143 14.2-RELEASE FreeBSD 14.2-RELEASE releng/14.2-n269506-c8918d6c7412 GENERIC amd64
+# uname -a
+FreeBSD 4305ae09f143 14.2-RELEASE FreeBSD 14.2-RELEASE releng/14.2-n269506-c8918d6c7412 GENERIC amd64
+# freebsd-version -kru
+freebsd-version: unable to locate kernel
+# freebsd-version -ru
+14.2-RELEASE
+14.2-RELEASE
+# ^D
+john@twix ~>
+
