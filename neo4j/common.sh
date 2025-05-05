@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-JAIL_NAME="neo4j"
+JAIL_NAME="neo4j1"
 JAIL_RELEASE="14.2-RELEASE"
 
 JAIL_VNET="vnet1"
