@@ -1,0 +1,35 @@
+john@lab /scratch/john/development/FreeBSD-OCI/neo4j>iocage list | grep neo4j
+| 83   | neo4j      | up    | 14.2-RELEASE | 10.88.88.193 |
+
+john@lab /scratch/john/development/FreeBSD-OCI/neo4j>sudo iocage stop neo4j  
+* Stopping neo4j
+  + Executing prestop OK
+  + Stopping services OK
+  + Tearing down VNET OK
+  + Removing devfs_ruleset: 1013 OK
+  + Removing jail process OK
+  + Executing poststop OK
+
+john@lab /scratch/john/development/FreeBSD-OCI/neo4j>sudo iocage set notes="Neo4j 4.4 on 14.2-RELEASE" neo4j
+notes: none -> Neo4j 4.4 on 14.2-RELEASE
+
+john@lab /scratch/john/development/FreeBSD-OCI/neo4j>sudo iocage set template=yes neo4j
+neo4j converted to a template.
+
+john@lab /scratch/john/development/FreeBSD-OCI>sudo iocage create -t neo4j -n neo4j1
+neo4j1 successfully created!
+
+john@lab /scratch/john/development/FreeBSD-OCI>iocage list | grep neo4j1
+| None | neo4j1     | down  | 14.2-RELEASE | -            |
+
+john@lab /scratch/john/development/FreeBSD-OCI>sudo iocage start neo4j1
+* Starting neo4j1
+  + Started OK
+  + Using devfs_ruleset: 1013 (iocage generated default)
+  + Using IP options: ip4.saddrsel=1 ip4=new ip6.saddrsel=1 ip6=new
+  + Starting services OK
+  + Executing poststart OK
+
+john@lab /scratch/john/development/FreeBSD-OCI>iocage list | grep neo4j1
+| 84   | neo4j1     | up    | 14.2-RELEASE | -            |
+
